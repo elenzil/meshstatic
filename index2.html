@@ -1,0 +1,139 @@
+<html>
+  <head>
+    <!--
+                             :i                         
+     ;@s,                  ,22Xhr                  .s#  
+     S:.22;,            ,;2S.   i9i:            .;i5:A  
+     S,   ;iSirr;::;rsSsr,        ,r5SSsrr;;ri5XSs.  2  
+     i,       .,::::,.                .,;;;;;:       r  
+     5:                                              h. 
+     i,                                              G. 
+     X.              .r                              h. 
+     X,               @,                             2. 
+     5:               ;M                             9. 
+     i,                &r                            h. 
+     3.                .#                            h. 
+     h                  XX                           9. 
+     &                S@@Ss@@@h                      9. 
+     H                 2A : @s,                      9. 
+     2                rs,r;:Ss                       G, 
+     S                :r,@   #.                      h, 
+     9                   X:  r#,                     X. 
+     &                   H    :52S;.                 5, 
+     9                  :#       :ih3XS;.            S: 
+     G                  ;#            :2@@r          s  
+     3:                  3G,r: &         @           X  
+     :X                   9A@;r@92; s,   @          :S  
+      A:                  ,X#.A  ;2H@@  #:          &   
+      .B                  X@ @5     @Ms:A          2r   
+       ,H                 ;# @s     2h@XX         is    
+        :A:             .,#@ @M2M@AX&sA,X        S;     
+          Bi         2BH3i;:;:;993@@@#5r.      :9,      
+           rhr      #@. ;;     ;r:,#@@@@     ,2S        
+             sSr 5#A;   ,:  .i#S#;, H@@@@s :XS.         
+               ;i&i       ,r; , 5H@&;@X,hGSr            
+                  ,rir:,.         .,.,..                
+                     .,;rsrsirrr;;.                     
+    -->
+    <title>mesh static</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+    <script src="3js/three.min.js"></script>
+    <script src="3js/OrbitControls.js"></script>
+    <script>
+
+      var gScene, gCamera, gRenderer, gControls;
+      var gWidth  = 400;
+      var gHeight = 400;
+ 
+
+      function gebid(id) {
+        return document.getElementById(id);
+      }
+
+      function onLoad() {
+        init();
+        animate();
+        tick()
+      }
+
+      function init() {
+        gScene  = new THREE.Scene();
+
+        gRenderer = new THREE.WebGLRenderer({antialias:true});
+        gRenderer.setSize(gWidth, gHeight);
+        gebid('webgl_container').appendChild(gRenderer.domElement);
+
+        gCamera = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 20000);
+        gCamera.position.set(0, 0, 40);
+        gScene.add(gCamera);
+
+        var light = new THREE.PointLight(0xffff55);
+        light.position.set(-50,-50,100);
+        gScene.add(light);
+
+        var light = new THREE.PointLight(0x55ffff);
+        light.position.set(50,50,-100);
+        gScene.add(light);
+
+        var light = new THREE.PointLight(0xff55ff);
+        light.position.set(50,100,-50);
+        gScene.add(light);
+
+        var geometry = new THREE.BoxBufferGeometry(10, 10, 10);
+        var material = new THREE.MeshLambertMaterial();
+        // material.wireframe = true;
+        var mesh = new THREE.Mesh( geometry, material );
+        gScene.add( mesh );
+
+        gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
+        // gControls.enableDamping = true;
+        // gControls.dampingFactor = 0.25;
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        gRenderer.render(gScene, gCamera);
+        gControls.update();
+      }
+
+      function onClickNew() {
+        clearIt();
+        chooseTri();
+        drawTri();
+        gCtx1.fillStyle   = "rgba(  255,   255, 255, 0.515)";
+        choosePoint();
+      }
+
+      function tick() {
+        doIt();
+        var ms = 1000 / 160;
+        setTimeout("tick()", ms);
+      }
+
+      function doIt() {
+      }
+
+    </script>
+  </head>
+  <style>
+    body {
+      font-family: Courier New, monospace;
+      background-color: DarkSlateGray;
+      color:MistyRose;
+    }
+    canvas {
+      border: 1px solid #bbb;
+    }
+
+    #webgl_container {
+      border: 1px solid #bbb;
+      display:inline-block;
+    }
+  </style>
+
+  <body onload="onLoad()">
+    <div id="webgl_container" width=400px height=400px></div><br>
+    <button onClick="onClickNew()">new</button>
+  </body>
+</html>
