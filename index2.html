@@ -1,5 +1,8 @@
+<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <!--
                              :i                         
      ;@s,                  ,22Xhr                  .s#  
@@ -36,10 +39,11 @@
                      .,;rsrsirrr;;.                     
     -->
     <title>mesh static</title>
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
     <script src="3js/three.min.js"></script>
     <script src="3js/OrbitControls.js"></script>
+    <script src="3js/STLLoader.js"></script>
+
     <script>
 
       var gScene, gCamera, gRenderer, gControls;
@@ -65,7 +69,7 @@
         gebid('webgl_container').appendChild(gRenderer.domElement);
 
         gCamera = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 20000);
-        gCamera.position.set(0, 0, 40);
+        gCamera.position.set(0, 0, 5);
         gScene.add(gCamera);
 
         var light = new THREE.PointLight(0xffff55);
@@ -80,11 +84,13 @@
         light.position.set(50,100,-50);
         gScene.add(light);
 
-        var geometry = new THREE.BoxBufferGeometry(10, 10, 10);
-        var material = new THREE.MeshLambertMaterial();
-        // material.wireframe = true;
-        var mesh = new THREE.Mesh( geometry, material );
-        gScene.add( mesh );
+        var loader = new THREE.STLLoader();
+        loader.load( 'models/reef_110.stl', function ( geometry ) {
+          var material = new THREE.MeshLambertMaterial();
+          gScene.add( new THREE.Mesh( geometry, material ) );
+          thinkTriangles(geometry);
+        });
+
 
         gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
         // gControls.enableDamping = true;
@@ -97,12 +103,50 @@
         gControls.update();
       }
 
+      function dist(ptA, ptB) {
+        var dx = ptB.x - ptA.x;
+        var dy = ptB.y - ptA.y;
+        var dz = ptB.z - ptA.z;
+        return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+      }
+
+      var gCumulativeAreas = [];
+
+      function thinkTriangles(geometry) {
+        var verts = geometry.vertices;
+
+        var totalArea = 0;
+
+        var num = geometry.faces.length;
+        for (var n = 0; n < num; ++n) {
+          var face = geometry.faces[n];
+          // heron's formula for area
+          var ab = dist(verts[face.a], verts[face.b]);
+          var bc = dist(verts[face.b], verts[face.c]);
+          var ca = dist(verts[face.c], verts[face.a]);
+          var s = (ab + bc + ca) / 2;
+          var A = Math.sqrt(s * (s - ab) * (s - bc) * (s - ca));
+          totalArea += A;
+          gCumulativeAreas[n] = totalArea;
+        }
+      }
+
+      function chooseTriangle() {
+        var totalArea = gCumulativeAreas[gCumulativeAreas.length - 1];
+        var r = Math.random() * totalArea;
+        var chosen = gCumulativeAreas.length - 1;
+        for (var n = 0; n <= chosen; ++n) {
+          if (gCumulativeAreas[n] > r) {
+            chosen = n;
+            break;
+          }
+        }
+
+        return chosen;
+      }
+
       function onClickNew() {
-        clearIt();
-        chooseTri();
-        drawTri();
-        gCtx1.fillStyle   = "rgba(  255,   255, 255, 0.515)";
-        choosePoint();
+        alert("sssss " + chooseTriangle());
       }
 
       function tick() {
@@ -127,7 +171,6 @@
     }
 
     #webgl_container {
-      border: 1px solid #bbb;
       display:inline-block;
     }
   </style>
