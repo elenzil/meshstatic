@@ -47,8 +47,11 @@
     <script>
 
       var gScene, gCamera, gRenderer, gControls;
+      var gParticles;
       var gWidth  = 400;
       var gHeight = 400;
+
+      var gNumPoints = 1000;
  
 
       function gebid(id) {
@@ -58,7 +61,6 @@
       function onLoad() {
         init();
         animate();
-        tick()
       }
 
       function init() {
@@ -68,19 +70,19 @@
         gRenderer.setSize(gWidth, gHeight);
         gebid('webgl_container').appendChild(gRenderer.domElement);
 
-        gCamera = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 20000);
+        gCamera = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 100);
         gCamera.position.set(0, 0, 5);
         gScene.add(gCamera);
 
-        var light = new THREE.PointLight(0xffff55);
+        var light = new THREE.PointLight(0x888855);
         light.position.set(-50,-50,100);
         gScene.add(light);
 
-        var light = new THREE.PointLight(0x55ffff);
+        var light = new THREE.PointLight(0x558888);
         light.position.set(50,50,-100);
         gScene.add(light);
 
-        var light = new THREE.PointLight(0xff55ff);
+        var light = new THREE.PointLight(0x885588);
         light.position.set(50,100,-50);
         gScene.add(light);
 
@@ -89,8 +91,31 @@
           var material = new THREE.MeshLambertMaterial();
           gScene.add( new THREE.Mesh( geometry, material ) );
           thinkTriangles(geometry);
+          doIt();
         });
 
+        gParticles = new THREE.Geometry();
+        var pMaterial = new THREE.PointsMaterial({
+          color: 0xFFFFFF,
+          size: 0.05,
+          // map: THREE.TextureLoader(
+          //   "images/dot_128.png"
+          // ),
+          blending: THREE.AdditiveBlending,
+          transparent: true
+        });
+
+        var particleSystem = new THREE.Points(
+          gParticles,
+          pMaterial);
+
+        for (var n = 0; n < gNumPoints; ++n) {
+         var particle = new THREE.Vector3(10, 10, 10);
+         var particle = new THREE.Vector3(0, 0, 0);
+          gParticles.vertices.push(particle);
+        }
+
+        gScene.add(particleSystem);
 
         gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
         // gControls.enableDamping = true;
@@ -111,8 +136,11 @@
       }
 
       var gCumulativeAreas = [];
+      var gTriangles;
 
       function thinkTriangles(geometry) {
+        gTriangles = geometry;
+
         var verts = geometry.vertices;
 
         var totalArea = 0;
@@ -145,17 +173,28 @@
         return chosen;
       }
 
-      function onClickNew() {
-        alert("sssss " + chooseTriangle());
-      }
-
-      function tick() {
-        doIt();
-        var ms = 1000 / 160;
-        setTimeout("tick()", ms);
-      }
-
       function doIt() {
+        var verts = gTriangles.vertices;
+
+        for (n = 0; n < gNumPoints; ++n) {        
+          var triIndex = chooseTriangle();
+
+          var face = gTriangles.faces[triIndex];
+
+          var x = (verts[face.a].x + verts[face.b].x + verts[face.c].x) / 3;
+          var y = (verts[face.a].y + verts[face.b].y + verts[face.c].y) / 3;
+          var z = (verts[face.a].z + verts[face.b].z + verts[face.c].z) / 3;
+
+          gParticles.vertices[n].x = x;
+          gParticles.vertices[n].y = y;
+          gParticles.vertices[n].z = z;
+        }
+
+        gParticles.verticesNeedUpdate = true;
+      }
+
+      function onClickNew() {
+        doIt();
       }
 
     </script>
