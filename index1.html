@@ -1,0 +1,153 @@
+<html>
+  <head>
+    <!--
+                             :i                         
+     ;@s,                  ,22Xhr                  .s#  
+     S:.22;,            ,;2S.   i9i:            .;i5:A  
+     S,   ;iSirr;::;rsSsr,        ,r5SSsrr;;ri5XSs.  2  
+     i,       .,::::,.                .,;;;;;:       r  
+     5:                                              h. 
+     i,                                              G. 
+     X.              .r                              h. 
+     X,               @,                             2. 
+     5:               ;M                             9. 
+     i,                &r                            h. 
+     3.                .#                            h. 
+     h                  XX                           9. 
+     &                S@@Ss@@@h                      9. 
+     H                 2A : @s,                      9. 
+     2                rs,r;:Ss                       G, 
+     S                :r,@   #.                      h, 
+     9                   X:  r#,                     X. 
+     &                   H    :52S;.                 5, 
+     9                  :#       :ih3XS;.            S: 
+     G                  ;#            :2@@r          s  
+     3:                  3G,r: &         @           X  
+     :X                   9A@;r@92; s,   @          :S  
+      A:                  ,X#.A  ;2H@@  #:          &   
+      .B                  X@ @5     @Ms:A          2r   
+       ,H                 ;# @s     2h@XX         is    
+        :A:             .,#@ @M2M@AX&sA,X        S;     
+          Bi         2BH3i;:;:;993@@@#5r.      :9,      
+           rhr      #@. ;;     ;r:,#@@@@     ,2S        
+             sSr 5#A;   ,:  .i#S#;, H@@@@s :XS.         
+               ;i&i       ,r; , 5H@&;@X,hGSr            
+                  ,rir:,.         .,.,..                
+                     .,;rsrsirrr;;.                     
+    -->
+    <title>mesh static</title>
+    <script>
+
+      var gCtx1;
+
+      // a triangle defined by points p1, p2, and p3.
+      var p1x, p1y, p2x, p2y, p3x, p3y;
+
+      // (basis) vectors between p's 1, 2, and 3.
+      var  v12x, v12y ,  v13x, v13y;
+
+      function chooseTri() {
+        var w = gCtx1.canvas.width;
+        var h = gCtx1.canvas.height;
+        p1x   = Math.random() * w;
+        p1y   = Math.random() * h;
+        p2x   = Math.random() * w;
+        p2y   = Math.random() * h;
+        p3x   = Math.random() * w;
+        p3y   = Math.random() * h;
+
+        v12x  = p2x - p1x;
+        v12y  = p2y - p1y;
+        v13x  = p3x - p1x;
+        v13y  = p3y - p1y;
+      }
+
+      function gebid(id) {
+        return document.getElementById(id);
+      }
+
+      function onLoad() {
+        gCtx1 = gebid("canvas1").getContext("2d");
+        gCtx1.strokeStyle = "rgba(255, 255, 255, 1.0)";
+        tick()
+      }
+
+      function onClickNew() {
+        clearIt();
+        chooseTri();
+        drawTri();
+        gCtx1.fillStyle   = "rgba(  255,   255, 255, 0.515)";
+        choosePoint();
+      }
+
+      function clearIt() {
+        gCtx1.clearRect(0, 0, gCtx1.canvas.width, gCtx1.canvas.height);
+      }
+
+      function drawTri() {
+        gCtx1.fillStyle   = "rgba(  0,   0,   0, 0.72)";
+        gCtx1.beginPath();
+        gCtx1.moveTo(p1x, p1y);
+        gCtx1.lineTo(p2x, p2y);
+        gCtx1.lineTo(p3x, p3y);
+        gCtx1.fill();
+      }
+
+      function choosePoint() {
+        // choose a random point inside the triangle.
+
+        // pA will be the distance along the vector v12,
+        // pB will be the distance along the vector v13.
+        var pA    = Math.random();
+        var pB    = Math.random();
+
+        // this is key: if the sum of pA and pB is larger than one,
+        // then the point lies outside the triangle,
+        // so reflect it back in.
+        if (pA + pB > 1) {
+          pA = 1 - pA;
+          pB = 1 - pB;
+        }
+
+        // use the v12 and v13 basis-vectors to figure out where the point actually is.
+        // this easily extends to 3D.
+        var pA12x = (pA * v12x);
+        var pA12y = (pA * v12y);
+        var pB13x = (pB * v13x);
+        var pB13y = (pB * v13y);
+        var pABx  = pA12x + pB13x + p1x;
+        var pABy  = pA12y + pB13y + p1y;
+
+        gCtx1.fillRect(pABx, pABy, 1, 1);
+      }
+
+      function tick() {
+        doIt();
+        var ms = 1000 / 160;
+        setTimeout("tick()", ms);
+      }
+
+      function doIt() {
+        for (var n = 0; n < 100; ++n) {
+          choosePoint();
+        }
+      }
+
+    </script>
+  </head>
+  <style>
+    body {
+      font-family: Courier New, monospace;
+      background-color: DarkSlateGray;
+      color:MistyRose;
+    }
+    canvas {
+      border: 1px solid #bbb;
+    }
+  </style>
+
+  <body onload="onLoad()">
+    <canvas id="canvas1" width=400px height=400px></canvas><br>
+    <button onClick="onClickNew()">new</button>
+  </body>
+</html>
