@@ -47,11 +47,17 @@
     <script>
 
       var gScene, gCamera, gRenderer, gControls;
-      var gParticles;
+      var gParticles, gMesh, gParts2;
+
+      var gShowMesh  = true;
+      var gShowParts = true;
+
       var gWidth  = 400;
       var gHeight = 400;
 
       var gNumPoints = 10000;
+
+      var gPointSize = 0.05;
  
 
       function gebid(id) {
@@ -61,6 +67,7 @@
       function onLoad() {
         init();
         animate();
+        initHTML();
       }
 
       function init() {
@@ -86,19 +93,29 @@
         light.position.set(50,100,-50);
         gScene.add(light);
 
-        var loader = new THREE.STLLoader();
-        // loader.load( 'models/reef_100.stl', function ( geometry ) {
-        // loader.load( 'models/reef_110.stl', function ( geometry ) {
-        // loader.load( 'models/box_100.stl', function ( geometry ) {
-        // loader.load( 'models/triangle.stl', function ( geometry ) {
-        loader.load( 'models/sphere_100.stl', function ( geometry ) {
-          var material = new THREE.MeshLambertMaterial();
-          gScene.add( new THREE.Mesh( geometry, material ) );
-          thinkTriangles(geometry);
-          doIt();
-        });
+        loadGeometry("models/sphere_100.stl");
 
+        stubPoints();
+
+        gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
+        // gControls.enableDamping = true;
+        // gControls.dampingFactor = 0.25;
+      }
+
+      function stubPoints() {
+        if (gParts2 !== undefined) {
+          gScene.remove(gParts2);
+        }
+        
         gParticles = new THREE.Geometry();
+
+        gParticles.vertices = [];
+        for (var n = 0; n < gNumPoints; ++n) {
+          var particle = new THREE.Vector3(0, 0, 0);
+          gParticles.vertices.push(particle);
+        }
+
+
         var pMaterial = new THREE.PointsMaterial({
           color: 0xFFFFFF,
           size: 0.05,
@@ -109,27 +126,42 @@
           transparent: true
         });
 
-        var particleSystem = new THREE.Points(
-          gParticles,
-          pMaterial);
+        gParts2 = new THREE.Points(gParticles, pMaterial);
 
-        for (var n = 0; n < gNumPoints; ++n) {
-         var particle = new THREE.Vector3(10, 10, 10);
-         var particle = new THREE.Vector3(0, 0, 0);
-          gParticles.vertices.push(particle);
-        }
+        gParts2.visible = gShowParts;
+        gScene.add(gParts2);
 
-        gScene.add(particleSystem);
-
-        gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
-        // gControls.enableDamping = true;
-        // gControls.dampingFactor = 0.25;
       }
 
       function animate() {
         requestAnimationFrame(animate);
         gRenderer.render(gScene, gCamera);
         gControls.update();
+      }
+
+      function initHTML() {
+        gebid("iNumPts").value = gNumPoints;
+        gebid("iPtSize").value = gPointSize;
+      }
+
+      function grabHTML() {
+        gNumPoints = gebid("iNumPts").value * 1;
+        gPointSize = gebid("iPtSize").value * 1;
+      }
+
+      function loadGeometry(url) {
+        var loader = new THREE.STLLoader();
+        loader.load(url, function (geometry) {
+          if (gMesh !== undefined) {
+            gScene.remove(gMesh);
+          }
+          var material = new THREE.MeshLambertMaterial();
+          gMesh = new THREE.Mesh(geometry, material);
+          gMesh.visible = gShowMesh;
+          gScene.add(gMesh);
+          thinkTriangles(geometry);
+          doIt();
+        });
       }
 
       function dist(ptA, ptB) {
@@ -139,11 +171,13 @@
         return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
       }
 
-      var gCumulativeAreas = [];
+      var gCumulativeAreas;
       var gTriangles;
 
       function thinkTriangles(geometry) {
         gTriangles = geometry;
+
+        gCumulativeAreas = [];
 
         var verts = geometry.vertices;
 
@@ -206,6 +240,11 @@
       }
 
       function doIt() {
+
+        if (gNumPoints != gParticles.vertices.length) {
+          stubPoints();
+        }
+
         var verts = gTriangles.vertices;
 
         for (n = 0; n < gNumPoints; ++n) {        
@@ -220,7 +259,19 @@
       }
 
       function onClickNew() {
+        grabHTML();
         doIt();
+      }
+
+      function onClickShowModel(checkbox) {
+        gShowMesh = checkbox.checked;
+        gMesh.visible = gShowMesh;
+
+      }
+      function onClickShowPoints(checkbox) {
+        gShowParts = checkbox.checked;
+        gParts2.visible = gShowParts;
+
       }
 
     </script>
@@ -238,10 +289,66 @@
     #webgl_container {
       display:inline-block;
     }
+
+    .geoBtn {
+      width:100px;
+    }
+
+    .blahblah {
+      font-size: small;
+    }
+
+    #regen {
+      background-color:limegreen;
+    }
+
+
   </style>
 
   <body onload="onLoad()">
-    <div id="webgl_container" width=400px height=400px></div><br>
-    <button onClick="onClickNew()">new</button>
+    <p class="blahblah">
+      an experiment around distributing points randomly on the surface of a (triangle) mesh.
+    </p>
+    <table>
+      <tr valign="top">
+        <td>
+          <div id="webgl_container" width=400px height=400px></div>
+        </td>
+        <td>
+          <button class="geoBtn" onClick="loadGeometry('models/triangle.stl')">triangle</button>
+          <button class="geoBtn" onClick="loadGeometry('models/box_100.stl')">cube</button>
+          <button class="geoBtn" onClick="loadGeometry('models/sphere_100.stl')">sphere</button>
+          <button class="geoBtn" onClick="loadGeometry('models/reef_110.stl')">manifold1</button>
+          <button class="geoBtn" onClick="loadGeometry('models/reef_100.stl')">manifold2</button>
+          <hr/>
+          <table width='100%'>
+
+            <tr>
+              <td>
+                Model:
+                <input type='checkbox' onClick="onClickShowModel(this)" checked="checked"/>
+              </td>
+              <td>
+                Points:
+                <input type='checkbox' onClick="onClickShowPoints(this)" checked="checked"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Num Points:
+                <input id="iNumPts" width="50px"/>
+              </td>
+              <td>
+                Point Size:
+                <input id="iPtSize" width="50px"/>
+              </td>
+            </tr>
+
+          </td>
+        </td>
+      </tr></table><hr/>
+          <button id="regen" onClick="onClickNew()">regenerate points</button>
   </body>
 </html>
+
+

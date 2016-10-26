@@ -1,9 +1,9 @@
 solid Cheetah3Dfile
  facet normal -0.0000 0.0000 1.0000
    outer loop
-     vertex -0.4330 0.2500 0.0000
-     vertex 0.0000 -0.5000 0.0000
-     vertex 0.4330 0.2500 0.0000
+     vertex -1.0825 0.6250 0.0000
+     vertex 0.0000 -1.2500 0.0000
+     vertex 1.0825 0.6250 0.0000
    endloop
  endfacet
 endsolid
