@@ -100,6 +100,9 @@
         gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
         // gControls.enableDamping = true;
         // gControls.dampingFactor = 0.25;
+
+        // var fog = new THREE.Fog(0x0, 4, 4.5);
+        // gScene.fog = fog;
       }
 
       function stubPoints() {
@@ -126,6 +129,10 @@
           transparent: true,
           depthWrite: false,
           depthTest: false
+          // hm, can't get polygonOffset to work.
+          // polygonOffset: true,
+          // polygonOffsetFactor: -0.5
+          // polygonOffsetUnits: -1.0
         });
 
         gParts2 = new THREE.Points(gParticles, pMaterial);
@@ -275,11 +282,37 @@
         gMesh.visible = gShowMesh;
 
       }
+
       function onClickShowPoints(checkbox) {
         gShowParts = checkbox.checked;
         gParts2.visible = gShowParts;
-
       }
+
+      function onClickDump() {
+
+        var verts = gParticles.vertices;
+
+        var delim = "";
+
+        var s = "";
+        s += "[\n";
+        for (var n = 0; n < verts.length; ++n) {
+          s += delim;
+          s += "  [";
+          s += verts[n].x.toFixed(4);
+          s += ", ";
+          s += verts[n].y.toFixed(4);
+          s += ", ";
+          s += verts[n].z.toFixed(4);
+          s += "]";
+
+          delim = ",\n";
+        }
+        s += "\n]\n";
+
+        gebid("pointDump").innerHTML = s;
+      }
+
 
     </script>
   </head>
@@ -307,6 +340,10 @@
 
     #regen {
       background-color:limegreen;
+    }
+
+    #pointDump {
+      border:1px dashed gray;
     }
 
 
@@ -355,6 +392,9 @@
         </td>
       </tr></table><hr/>
           <button id="regen" onClick="onClickNew()">regenerate points</button>
+          <hr/>
+          <button  onClick="onClickDump()">dump points as json</button>
+          <pre id="pointDump"> </pre>
   </body>
 </html>
 
