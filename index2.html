@@ -52,10 +52,10 @@
       var gShowMesh  = true;
       var gShowParts = true;
 
-      var gWidth  = 400;
-      var gHeight = 400;
+      var gWidth  = 600;
+      var gHeight = 600;
 
-      var gNumPoints = 10000;
+      var gNumPoints = 1000;
 
       var gPointSize = 0.05;
  
@@ -106,7 +106,7 @@
         if (gParts2 !== undefined) {
           gScene.remove(gParts2);
         }
-        
+
         gParticles = new THREE.Geometry();
 
         gParticles.vertices = [];
@@ -115,15 +115,17 @@
           gParticles.vertices.push(particle);
         }
 
-
         var pMaterial = new THREE.PointsMaterial({
           color: 0xFFFFFF,
-          size: 0.05,
-          // map: THREE.TextureLoader(
-          //   "images/dot_128.png"
-          // ),
+          opacity: 0.5,
+          size: gPointSize,
+          map: new THREE.TextureLoader().load(
+            "images/dot_128.png"
+          ),
           blending: THREE.AdditiveBlending,
-          transparent: true
+          transparent: true,
+          depthWrite: false,
+          depthTest: false
         });
 
         gParts2 = new THREE.Points(gParticles, pMaterial);
@@ -241,7 +243,12 @@
 
       function doIt() {
 
-        if (gNumPoints != gParticles.vertices.length) {
+        var stubIt = false;
+
+        stubIt = stubIt || (gNumPoints != gParticles.vertices.length);
+        stubIt = stubIt || (Math.abs(gPointSize - gParts2.material.size) > 0.001);
+
+        if (stubIt) {
           stubPoints();
         }
 
@@ -312,7 +319,7 @@
     <table>
       <tr valign="top">
         <td>
-          <div id="webgl_container" width=400px height=400px></div>
+          <div id="webgl_container" width=600px height=600px></div>
         </td>
         <td>
           <button class="geoBtn" onClick="loadGeometry('models/triangle.stl')">triangle</button>
