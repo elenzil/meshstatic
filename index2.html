@@ -51,7 +51,7 @@
       var gWidth  = 400;
       var gHeight = 400;
 
-      var gNumPoints = 1000;
+      var gNumPoints = 10000;
  
 
       function gebid(id) {
@@ -87,7 +87,11 @@
         gScene.add(light);
 
         var loader = new THREE.STLLoader();
-        loader.load( 'models/reef_110.stl', function ( geometry ) {
+        // loader.load( 'models/reef_100.stl', function ( geometry ) {
+        // loader.load( 'models/reef_110.stl', function ( geometry ) {
+        // loader.load( 'models/box_100.stl', function ( geometry ) {
+        // loader.load( 'models/triangle.stl', function ( geometry ) {
+        loader.load( 'models/sphere_100.stl', function ( geometry ) {
           var material = new THREE.MeshLambertMaterial();
           gScene.add( new THREE.Mesh( geometry, material ) );
           thinkTriangles(geometry);
@@ -173,6 +177,34 @@
         return chosen;
       }
 
+      function choosePoint(ptA, ptB, ptC) {
+        // normalized distance along basis vectors.
+        var nAB = Math.random();
+        var nAC = Math.random();
+
+        // if the normalized coordinates are outside the triangle (0, 0), (1, 0), (0, 1),
+        // then the point will be outside our real triangle,
+        // so reflect it back inside the region.
+        if ((nAB + nAC) > 1) {
+          nAB = 1 - nAB;
+          nAC = 1 - nAC;
+        }
+
+        // vAB and vAC form a basis vector for the space.
+        var vAB = ptB.clone().sub(ptA);
+        var vAC = ptC.clone().sub(ptA);
+
+        vAB.multiplyScalar(nAB);
+        vAC.multiplyScalar(nAC);
+
+        var ret = ptA.clone();
+
+        ret.add(vAB);
+        ret.add(vAC);
+
+        return ret;
+      }
+
       function doIt() {
         var verts = gTriangles.vertices;
 
@@ -181,13 +213,7 @@
 
           var face = gTriangles.faces[triIndex];
 
-          var x = (verts[face.a].x + verts[face.b].x + verts[face.c].x) / 3;
-          var y = (verts[face.a].y + verts[face.b].y + verts[face.c].y) / 3;
-          var z = (verts[face.a].z + verts[face.b].z + verts[face.c].z) / 3;
-
-          gParticles.vertices[n].x = x;
-          gParticles.vertices[n].y = y;
-          gParticles.vertices[n].z = z;
+          gParticles.vertices[n] = choosePoint(verts[face.a], verts[face.b], verts[face.c]);
         }
 
         gParticles.verticesNeedUpdate = true;
