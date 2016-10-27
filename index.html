@@ -1,6 +1,482 @@
-<html>
-<body>
-	<a href="index1.html">random points in a triangle</a><br>
-	<a href="index2.html">selecting polygons by area</a>
-</body>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:fb="http://ogp.me/ns/fb#">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <!--
+                             :i                         
+     ;@s,                  ,22Xhr                  .s#  
+     S:.22;,            ,;2S.   i9i:            .;i5:A  
+     S,   ;iSirr;::;rsSsr,        ,r5SSsrr;;ri5XSs.  2  
+     i,       .,::::,.                .,;;;;;:       r  
+     5:                                              h. 
+     i,                                              G. 
+     X.              .r                              h. 
+     X,               @,                             2. 
+     5:               ;M                             9. 
+     i,                &r                            h. 
+     3.                .#                            h. 
+     h                  XX                           9. 
+     &                S@@Ss@@@h                      9. 
+     H                 2A : @s,                      9. 
+     2                rs,r;:Ss                       G, 
+     S                :r,@   #.                      h, 
+     9                   X:  r#,                     X. 
+     &                   H    :52S;.                 5, 
+     9                  :#       :ih3XS;.            S: 
+     G                  ;#            :2@@r          s  
+     3:                  3G,r: &         @           X  
+     :X                   9A@;r@92; s,   @          :S  
+      A:                  ,X#.A  ;2H@@  #:          &   
+      .B                  X@ @5     @Ms:A          2r   
+       ,H                 ;# @s     2h@XX         is    
+        :A:             .,#@ @M2M@AX&sA,X        S;     
+          Bi         2BH3i;:;:;993@@@#5r.      :9,      
+           rhr      #@. ;;     ;r:,#@@@@     ,2S        
+             sSr 5#A;   ,:  .i#S#;, H@@@@s :XS.         
+               ;i&i       ,r; , 5H@&;@X,hGSr            
+                  ,rir:,.         .,.,..                
+                     .,;rsrsirrr;;.                     
+    -->
+    <title>mesh static</title>
+    <link rel="icon" href="images/thing_100.png" />
+    <meta property="og:image" content="images/thing_100.png" />
+    <meta name="twitter:image" content="images/thing_100.png" />
+
+
+    <script src="3js/three.min.js"></script>
+    <script src="3js/OrbitControls.js"></script>
+    <script src="3js/STLLoader.js"></script>
+
+    <script>
+
+      var gScene, gCamera, gRenderer, gControls;
+      var gParticles, gMesh, gParts2, gWires;
+
+      var gStyle = 1;
+
+      var gShowMesh  = true;
+      var gShowParts = true;
+
+      var gWidth  = 600;
+      var gHeight = 600;
+
+      var gNumPoints = 1000;
+
+      var gPointSize = 0.05;
+ 
+
+      function gebid(id) {
+        return document.getElementById(id);
+      }
+
+      function onLoad() {
+        init();
+        animate();
+        initHTML();
+      }
+
+      function init() {
+        gScene  = new THREE.Scene();
+
+        gRenderer = new THREE.WebGLRenderer({antialias:true});
+        gRenderer.setSize(gWidth, gHeight);
+        gebid('webgl_container').appendChild(gRenderer.domElement);
+
+        gCamera = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 100);
+        gCamera.position.set(0, 0, 5);
+        gScene.add(gCamera);
+
+        var light = new THREE.DirectionalLight(0x555522);
+        light.position.set(0, 1, .5);
+        gScene.add(light);
+
+        var light = new THREE.DirectionalLight(0x225555);
+        light.position.set(0, 0, -1);
+        gScene.add(light);
+
+        var light = new THREE.DirectionalLight(0x552255);
+        light.position.set(-1, 0, .5);
+        gScene.add(light);
+
+        loadGeometry("models/sphere_100.stl");
+
+        stubPoints();
+
+        gControls = new THREE.OrbitControls(gCamera, gRenderer.domElement);
+        // gControls.enableDamping = true;
+        // gControls.dampingFactor = 0.25;
+
+        // var fog = new THREE.Fog(0x0, 4, 4.5);
+        // gScene.fog = fog;
+      }
+
+      function stubPoints() {
+        if (gParts2 !== undefined) {
+          gScene.remove(gParts2);
+        }
+
+        gParticles = new THREE.Geometry();
+
+        gParticles.vertices = [];
+        for (var n = 0; n < gNumPoints; ++n) {
+          var particle = new THREE.Vector3(0, 0, 0);
+          gParticles.vertices.push(particle);
+        }
+
+        var pMaterial = new THREE.PointsMaterial({
+          color: 0xFFFFFF,
+          opacity: 0.5,
+          size: gPointSize,
+          map: new THREE.TextureLoader().load(
+            "images/dot_128.png"
+          ),
+          blending: THREE.AdditiveBlending,
+          transparent: true,
+          depthWrite: false
+//          depthTest: false
+          // hm, can't get polygonOffset to work.
+            // polygonOffset: true,
+            // polygonOffsetFactor: -20,
+            // polygonOffsetUnits: -20
+        });
+
+        gParts2 = new THREE.Points(gParticles, pMaterial);
+
+        gParts2.visible = gShowParts;
+        gScene.add(gParts2);
+
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        gRenderer.render(gScene, gCamera);
+        gControls.update();
+      }
+
+      function initHTML() {
+        gebid("iNumPts").value = gNumPoints;
+        gebid("iPtSize").value = gPointSize;
+      }
+
+      function grabHTML() {
+        gNumPoints = gebid("iNumPts").value * 1;
+        gPointSize = gebid("iPtSize").value * 1;
+
+        if (gebid("is1").checked) {
+          gStyle = 1;
+        }
+        else if (gebid("is2").checked) {
+          gStyle = 2;
+        }
+        else {
+          console.error("no style selected");
+          gStyle = 1;
+        }
+
+      }
+
+      function loadGeometry(url) {
+        var loader = new THREE.STLLoader();
+        loader.load(url, function (geometry) {
+          if (gMesh !== undefined) {
+            gScene.remove(gMesh);
+            gScene.remove(gWires);
+          }
+          var material = new THREE.MeshLambertMaterial({
+            polygonOffset: true,
+            polygonOffsetFactor: 10, // positive value pushes polygon further away
+            polygonOffsetUnits: 10
+          });
+          gMesh = new THREE.Mesh(geometry, material);
+          gMesh.visible = gShowMesh;
+          gScene.add(gMesh);
+
+          var gLines = new THREE.WireframeGeometry(geometry);
+          var mat = new THREE.LineBasicMaterial({
+            color: 0x0,
+            linewidth: 1,
+            transparent: true,
+            opacity: 0.1,
+          });
+          gWires = new THREE.LineSegments( gLines, mat );
+          gMesh.add(gWires);
+
+          thinkTriangles(geometry);
+          doIt();
+        });
+      }
+
+      function dist(ptA, ptB) {
+        var dx = ptB.x - ptA.x;
+        var dy = ptB.y - ptA.y;
+        var dz = ptB.z - ptA.z;
+        return Math.sqrt((dx * dx) + (dy * dy) + (dz * dz));
+      }
+
+      var gCumulativeProbabilities;
+      var gUpness;
+      var gAreas;
+      var gTriangles;
+
+      function thinkTriangles(geometry) {
+        gTriangles = geometry;
+
+        gAreas                   = [];
+        gUpness                  = [];
+        gCumulativeProbabilities = [];
+
+        var verts = geometry.vertices;
+
+        var num = geometry.faces.length;
+        for (var n = 0; n < num; ++n) {
+          var face = geometry.faces[n];
+          // heron's formula for area
+          var ab = dist(verts[face.a], verts[face.b]);
+          var bc = dist(verts[face.b], verts[face.c]);
+          var ca = dist(verts[face.c], verts[face.a]);
+          var s = (ab + bc + ca) / 2;
+          var A = Math.sqrt(s * (s - ab) * (s - bc) * (s - ca));
+          var Up = upness(verts[face.a], verts[face.b], verts[face.c]);
+          gAreas [n] = A;
+          gUpness[n] = Up;
+        }
+      }
+
+      var gvUp = new THREE.Vector3(0, 1, 0);
+      function upness(pA, pB, pC) {
+        var vAB = pB.clone().sub(pA);
+        var vAC = pC.clone().sub(pA);
+
+        var vCross = vAB.clone().cross(vAC);
+        vCross.normalize();
+        var sDot = vCross.dot(gvUp);
+        var sUp  = sDot > 0 ? sDot : 0;
+        return sUp;
+      }
+
+      function computeProbabilities() {
+        var cp = 0;
+
+        if (gStyle == 1) {
+          for (var n = 0; n < gAreas.length; ++n) {
+            cp += gAreas[n]
+            gCumulativeProbabilities[n] = cp;
+          }
+        }
+        else if (gStyle == 2) {
+          for (var n = 0; n < gAreas.length; ++n) {
+            cp += gAreas[n] * gUpness[n];
+            gCumulativeProbabilities[n] = cp;
+          }
+        }
+        else {
+          console.error("wtf1");
+        }
+      }
+
+      function chooseTriangle() {
+        var totalArea = gCumulativeProbabilities[gCumulativeProbabilities.length - 1];
+        var r = Math.random() * totalArea;
+        var chosen = gCumulativeProbabilities.length - 1;
+        for (var n = 0; n <= chosen; ++n) {
+          if (gCumulativeProbabilities[n] > r) {
+            chosen = n;
+            break;
+          }
+        }
+
+        return chosen;
+      }
+
+      function choosePoint(ptA, ptB, ptC) {
+        // normalized distance along basis vectors.
+        var nAB = Math.random();
+        var nAC = Math.random();
+
+        // if the normalized coordinates are outside the triangle (0, 0), (1, 0), (0, 1),
+        // then the point will be outside our real triangle,
+        // so reflect it back inside the region.
+        if ((nAB + nAC) > 1) {
+          nAB = 1 - nAB;
+          nAC = 1 - nAC;
+        }
+
+        // vAB and vAC form a basis vector for the space.
+        var vAB = ptB.clone().sub(ptA);
+        var vAC = ptC.clone().sub(ptA);
+
+        vAB.multiplyScalar(nAB);
+        vAC.multiplyScalar(nAC);
+
+        var ret = ptA.clone();
+
+        ret.add(vAB);
+        ret.add(vAC);
+
+        return ret;
+      }
+
+      function doIt() {
+
+        var stubIt = false;
+
+        stubIt = stubIt || (gNumPoints != gParticles.vertices.length);
+        stubIt = stubIt || (Math.abs(gPointSize - gParts2.material.size) > 0.001);
+
+        if (stubIt) {
+          stubPoints();
+        }
+
+        computeProbabilities();
+
+        var verts = gTriangles.vertices;
+
+        for (n = 0; n < gNumPoints; ++n) {        
+          var triIndex = chooseTriangle();
+
+          var face = gTriangles.faces[triIndex];
+
+          gParticles.vertices[n] = choosePoint(verts[face.a], verts[face.b], verts[face.c]);
+        }
+
+        gParticles.verticesNeedUpdate = true;
+      }
+
+      function onClickNew() {
+        grabHTML();
+        doIt();
+      }
+
+      function onClickShowModel(checkbox) {
+        gShowMesh = checkbox.checked;
+        gMesh.visible = gShowMesh;
+
+      }
+
+      function onClickShowPoints(checkbox) {
+        gShowParts = checkbox.checked;
+        gParts2.visible = gShowParts;
+      }
+
+      function onClickDump() {
+
+        var verts = gParticles.vertices;
+
+        var delim = "";
+
+        var s = "";
+        s += "[\n";
+        for (var n = 0; n < verts.length; ++n) {
+          s += delim;
+          s += "  [";
+          s += verts[n].x.toFixed(4);
+          s += ", ";
+          s += verts[n].y.toFixed(4);
+          s += ", ";
+          s += verts[n].z.toFixed(4);
+          s += "]";
+
+          delim = ",\n";
+        }
+        s += "\n]\n";
+
+        gebid("pointDump").innerHTML = s;
+      }
+
+
+    </script>
+  </head>
+  <style>
+    body {
+      font-family: Courier New, monospace;
+      background-color: DarkSlateGray;
+      color:MistyRose;
+    }
+    canvas {
+      border: 1px solid #bbb;
+    }
+
+    #webgl_container {
+      display:inline-block;
+    }
+
+    .geoBtn {
+      width:100px;
+    }
+
+    .blahblah {
+      font-size: small;
+    }
+
+    #regen {
+      background-color:limegreen;
+    }
+
+    #pointDump {
+      border:1px dashed gray;
+    }
+
+    .radItem {
+//    border:1px dashed grey;
+      display:inline-block;
+      padding:3px;
+    }
+
+
+  </style>
+
+  <body onload="onLoad()">
+    <p class="blahblah">
+      an experiment around distributing points randomly on the surface of a (triangle) mesh.
+    </p>
+    <table>
+      <tr valign="top">
+        <td>
+          <div id="webgl_container" width=600px height=600px></div>
+        </td>
+        <td>
+          <button class="geoBtn" onClick="loadGeometry('models/triangle.stl')">triangle</button>
+          <button class="geoBtn" onClick="loadGeometry('models/box_100.stl')">cube</button>
+          <button class="geoBtn" onClick="loadGeometry('models/sphere_100.stl')">sphere</button>
+          <button class="geoBtn" onClick="loadGeometry('models/reef_110.stl')">manifold1</button>
+          <button class="geoBtn" onClick="loadGeometry('models/reef_100.stl')">manifold2</button>
+          <hr/>
+          <table width='100%'>
+
+            <tr>
+              <td>
+                Model:
+                <input type='checkbox' onClick="onClickShowModel(this)" checked="checked"/>
+              </td>
+              <td>
+                Points:
+                <input type='checkbox' onClick="onClickShowPoints(this)" checked="checked"/>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                Num Points:
+                <input id="iNumPts" width="50px"/>
+              </td>
+              <td>
+                Point Size:
+                <input id="iPtSize" width="50px"/>
+              </td>
+            </tr>
+
+          </td>
+        </td>
+      </tr></table><hr/>
+          <div class="radItem"><input type="radio" id="is1" name="style" checked>everywhere</div>
+          <div class="radItem"><input type="radio" id="is2" name="style" >upward sides</div>
+          <!--<div class="radItem"><input type="radio" name="style" value="rain">rain</div>-->
+          <br>
+          <button id="regen" onClick="onClickNew()">regenerate points</button>
+          <hr/>
+          <button  onClick="onClickDump()">dump points as json</button>
+          <pre id="pointDump"> </pre>
+  </body>
 </html>
+
+
