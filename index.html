@@ -64,6 +64,8 @@
       var gNumPoints = 1000;
 
       var gPointSize = 0.05;
+
+      var gCamHome;
  
 
       function gebid(id) {
@@ -83,9 +85,10 @@
         gRenderer.setSize(gWidth, gHeight);
         gebid('webgl_container').appendChild(gRenderer.domElement);
 
-        gCamera = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 100);
-        gCamera.position.set(0, 0, 5);
+        gCamHome = new THREE.Vector3(0, 0, 5);
+        gCamera  = new THREE.PerspectiveCamera(45, gWidth / gHeight, 0.1, 100);
         gScene.add(gCamera);
+        home();
 
         var light = new THREE.DirectionalLight(0x555522);
         light.position.set(0, 1, .5);
@@ -384,6 +387,9 @@
         gebid("pointDump").innerHTML = s;
       }
 
+      function home() {
+        gCamera.position.set(gCamHome.x, gCamHome.y, gCamHome.z);
+      }
 
     </script>
   </head>
@@ -443,6 +449,8 @@
           <button class="geoBtn" onClick="loadGeometry('models/reef_100.stl')">manifold2</button>
           <button class="geoBtn" onClick="loadGeometry('models/donut_100.stl')">donut</button>
           <hr/>
+          <button class="geoBtn" onClick="home()">home</button>
+          <hr/>
           <table width='100%'>
 
             <tr>
@@ -469,11 +477,11 @@
           </td>
         </td>
       </tr></table><hr/>
+          <button id="regen" onClick="onClickNew()">regenerate points</button>
+          <br>
           <div class="radItem"><input type="radio" id="is1" name="style" checked>everywhere</div>
           <div class="radItem"><input type="radio" id="is2" name="style" >upward sides</div>
           <!--<div class="radItem"><input type="radio" name="style" value="rain">rain</div>-->
-          <br>
-          <button id="regen" onClick="onClickNew()">regenerate points</button>
           <hr/>
           <button  onClick="onClickDump()">dump points as json</button>
           <pre id="pointDump"> </pre>
